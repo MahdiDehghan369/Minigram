@@ -66,6 +66,22 @@ const bioSchema = yup.object({
   bio: yup.string().required("Bio is required"),
 });
 
+const likeSchema = yup.object({
+  item: yup
+    .string()
+    .required("item is required ❌"),
+
+  itemType: yup
+    .string()
+    .required("itemType is required ❌")
+    .oneOf(["post", "comment"], "itemType is not valid ❌"),
+});
+
+
+const bookmarkSchema = yup.object({
+  item: yup.string().required("item is required ❌"),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -75,4 +91,6 @@ module.exports = {
   usernameSchema,
   nameSchema,
   bioSchema,
+  likeSchema,
+  bookmarkSchema,
 };

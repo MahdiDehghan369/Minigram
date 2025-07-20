@@ -1,6 +1,8 @@
 const { errorResponse, successResponse } = require("../utils/responses");
 const User = require("./../models/user.model");
 const Post = require("./../models/post.model");
+const Like = require("./../models/like.model");
+const Bookmark = require("./../models/bookmark.model");
 const Follow = require("./../models/follow.model");
 const fs = require("fs");
 const path = require("path");
@@ -8,6 +10,8 @@ const path = require("path");
 exports.getUserInfo = async (req, res, next) => {
   try {
     const { username } = req.params;
+
+    const userId = req?.user?.id;
 
     const user = await User.findOne({ username }).select(
       "username email name bio avatar isPrivate"
@@ -30,7 +34,38 @@ exports.getUserInfo = async (req, res, next) => {
       "username avatar"
     );
 
-    const posts = await Post.find({ author: user._id, deletedAt: null });
+    let posts = await Post.find({ author: user._id, deletedAt: null });
+
+    let postsWithStatus = [];
+
+    for (let post of posts) {
+      const like = await Like.findOne({
+        item: post._id,
+        itemType: "post",
+        user: userId,
+      }).lean();
+
+      const bookmark = await Bookmark.findOne({
+        item: post._id,
+        user: userId,
+      })
+
+      if (like) {
+        post = post.toObject();
+        post.likeStatus = like.status;
+      } else {
+        post = post.toObject();
+        post.likeStatus = null;
+      }
+
+      if (bookmark) {
+        post.bookmarkStatus = "save";
+      } else {
+        post.bookmarkStatus = null;
+      }
+
+      postsWithStatus.push(post);
+    }
 
     return successResponse(res, 200, "User profile fetched successfully.", {
       user: {
@@ -46,7 +81,7 @@ exports.getUserInfo = async (req, res, next) => {
       },
       followers: followers.map((f) => f.follower),
       followings: followings.map((f) => f.following),
-      posts,
+      posts: postsWithStatus,
     });
   } catch (error) {
     next(error);

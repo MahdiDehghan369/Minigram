@@ -43,6 +43,7 @@ router
   .route("/:postId/permanent")
   .delete(authMiddleware, postCtrl.deletePostPermanently);
 
-
+router.route("/:postId/likes").get(authMiddleware , postCtrl.getLikes)
+router.route("/:postId/dislikes").get(authMiddleware , postCtrl.getDislikes)
 
 module.exports = router;

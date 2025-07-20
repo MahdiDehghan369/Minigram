@@ -1,5 +1,7 @@
 const { errorResponse, successResponse } = require("../utils/responses");
 const Post = require("./../models/post.model");
+const Like = require("./../models/like.model");
+const Bookmark = require("./../models/bookmark.model");
 const path = require("path");
 const fs = require("fs");
 const validatorObjetId = require("../validators/validatorObjetId");
@@ -70,7 +72,34 @@ exports.getAPost = async (req, res, next) => {
 
     await post.save();
 
-    return successResponse(res, 200, "Get post successfully :)", post);
+    let like = await Like.findOne({
+      item: post._id,
+      itemType: "post",
+      user: req?.user?.id,
+    }).lean();
+
+    let likeStatus = null
+    
+    if(like){
+      likeStatus = like.status;
+    }
+
+    let bookmark = await Bookmark.findOne({
+      item: post._id,
+      user: req?.user?.id,
+    }).lean();
+
+    let bookmarkStatus = null;
+
+    if (bookmark) {
+      bookmarkStatus = "save";
+    }
+
+    return successResponse(res, 200, "Get post successfully :)", {
+      post,
+      likeStatus,
+      bookmarkStatus,
+    });
   } catch (error) {
     next(error);
   }
@@ -376,3 +405,66 @@ exports.clearTrash = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getLikes = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+
+    validatorObjetId(res, "Post", postId);
+
+    const post = await Post.findOne({ _id: postId });
+
+    if (!post) {
+      return errorResponse(res, 404, "Post Not Found :|");
+    }
+
+    const likes = await Like.find({
+      item: post._id,
+      itemType: "post",
+      status: "like",
+    })
+      .populate("user", "username avatar")
+      .lean();
+
+    const people = likes.map((like) => like.user);
+
+    return successResponse(res, 200, "successfully :)", {
+      people,
+      count: people.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.getDislikes = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+
+    validatorObjetId(res, "Post", postId);
+
+    const post = await Post.findOne({ _id: postId });
+
+    if (!post) {
+      return errorResponse(res, 404, "Post Not Found :|");
+    }
+
+    const dislikes = await Like.find({
+      item: post._id,
+      itemType: "post",
+      status: "dislike",
+    })
+      .populate("user", "username avatar")
+      .lean();
+
+    const people = dislikes.map((dislike) => dislike.user);
+
+    return successResponse(res, 200, "successfully :)", {
+      people,
+      count: people.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
