@@ -2,9 +2,11 @@ const { errorResponse, successResponse } = require("../utils/responses");
 const Post = require("./../models/post.model");
 const Like = require("./../models/like.model");
 const Bookmark = require("./../models/bookmark.model");
+const Comment = require("./../models/comment.model");
 const path = require("path");
 const fs = require("fs");
 const validatorObjetId = require("../validators/validatorObjetId");
+const buildCommentTree = require("./../utils/buildCommentTree");
 
 exports.create = async (req, res, next) => {
   try {
@@ -78,9 +80,9 @@ exports.getAPost = async (req, res, next) => {
       user: req?.user?.id,
     }).lean();
 
-    let likeStatus = null
-    
-    if(like){
+    let likeStatus = null;
+
+    if (like) {
       likeStatus = like.status;
     }
 
@@ -383,8 +385,7 @@ exports.clearTrash = async (req, res, next) => {
     const posts = await Post.find({
       author: req.user.id,
       deletedAt: { $ne: null },
-    })
-
+    });
 
     for (let i = 0; i < posts.length; i++) {
       const postMedia = posts[i].media;
@@ -396,11 +397,9 @@ exports.clearTrash = async (req, res, next) => {
       }
     }
 
-
     await Post.deleteMany({ author: req.user.id, deletedAt: { $ne: null } });
 
-    return successResponse(res, 200 , "Trash cleared successfully :)")
-
+    return successResponse(res, 200, "Trash cleared successfully :)");
   } catch (error) {
     next(error);
   }
@@ -468,3 +467,29 @@ exports.getDislikes = async (req, res, next) => {
   }
 };
 
+exports.getComments = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const userId = req?.user?.id;
+    validatorObjetId(res, "Post", postId);
+
+    const post = await Post.findOne({ _id: postId });
+
+    if (!post) {
+      return errorResponse(res, 404, "Post Not Found :)");
+    }
+
+    let topLevelComments = await Comment.find({
+      post: postId,
+      parent: null,
+    })
+      .populate("author", "username avatar")
+      .lean();
+
+    const tree = await buildCommentTree(topLevelComments, userId);
+
+    return successResponse(res, 200, "Successfully :)", tree);
+  } catch (error) {
+    next(error);
+  }
+};

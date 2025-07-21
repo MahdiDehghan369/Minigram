@@ -12,6 +12,7 @@ const postRouter = require('./routes/post.route');
 const userRouter = require('./routes/user.route');
 const likeRouter = require('./routes/like.route');
 const bookmarkRouter = require('./routes/bookmark.route');
+const commentRouter = require('./routes/comment.route');
 
 
 
@@ -26,6 +27,7 @@ app.use("/post" , postRouter)
 app.use("/user", userRouter);
 app.use("/likes", likeRouter);
 app.use("/bookmark", bookmarkRouter);
+app.use("/comment", commentRouter);
 
 
 app.use((req , res , next) => {

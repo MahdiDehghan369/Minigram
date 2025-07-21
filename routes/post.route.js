@@ -46,4 +46,6 @@ router
 router.route("/:postId/likes").get(authMiddleware , postCtrl.getLikes)
 router.route("/:postId/dislikes").get(authMiddleware , postCtrl.getDislikes)
 
+router.route("/:postId/comments").get(authMiddleware , postCtrl.getComments)
+
 module.exports = router;
