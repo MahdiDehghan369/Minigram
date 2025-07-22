@@ -5,13 +5,13 @@ const bookmarkSchema = new Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "user",
       required: true,
     },
     item: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: "Post"
+      ref: "post"
     },
     createdAt: {
       type: Date,
@@ -25,4 +25,4 @@ const bookmarkSchema = new Schema(
 
 bookmarkSchema.index({ user: 1, item: 1, itemType: 1 }, { unique: true });
 
-module.exports = model("Bookmark", bookmarkSchema);
+module.exports = model("bookmark", bookmarkSchema);

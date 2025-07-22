@@ -13,6 +13,8 @@ const userRouter = require('./routes/user.route');
 const likeRouter = require('./routes/like.route');
 const bookmarkRouter = require('./routes/bookmark.route');
 const commentRouter = require('./routes/comment.route');
+const notifRouter = require('./routes/notif.route');
+const blockRouter = require('./routes/block.route');
 
 
 
@@ -28,6 +30,8 @@ app.use("/user", userRouter);
 app.use("/likes", likeRouter);
 app.use("/bookmark", bookmarkRouter);
 app.use("/comment", commentRouter);
+app.use("/notif", notifRouter);
+app.use("/block", blockRouter);
 
 
 app.use((req , res , next) => {

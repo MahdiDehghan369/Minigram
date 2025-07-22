@@ -1,6 +1,9 @@
 const { errorResponse, successResponse } = require("../utils/responses");
 const validatorObjetId = require("./../validators/validatorObjetId");
 const Like = require("./../models/like.model");
+const Notif = require("./../models/notif.model");
+const Post = require("./../models/post.model");
+const Comment = require("./../models/comment.model");
 
 exports.like = async (req, res, next) => {
   try {
@@ -9,6 +12,18 @@ exports.like = async (req, res, next) => {
 
     itemType = itemType.trim().toLowerCase();
     validatorObjetId(res, itemType, item);
+
+    let foundItem;
+
+    if (itemType === "post") {
+      foundItem = await Post.findOne({ _id: item });
+    } else if (itemType === "comment") {
+      foundItem = await Comment.findOne({ _id: item });
+    }
+
+    if (!foundItem) {
+      return errorResponse(res, 404, `${itemType} not found :(`);
+    }
 
     const existsLike = await Like.findOne({ item, user: userId });
 
@@ -28,6 +43,24 @@ exports.like = async (req, res, next) => {
       status: "like",
     });
 
+    const existsNotif = await Notif.findOne({
+      type: "like",
+      item: foundItem._id,
+      itemType,
+      sender: userId,
+      user: foundItem.author,
+    });
+
+    if (!existsNotif) {
+      await Notif.create({
+        user: foundItem.author,
+        sender: userId,
+        type: "like",
+        item: foundItem._id,
+        itemType,
+      });
+    }
+
     return successResponse(res, 200, "liked successfully :)");
   } catch (error) {
     next(error);
@@ -41,6 +74,18 @@ exports.dislike = async (req, res, next) => {
 
     itemType = itemType.trim().toLowerCase();
     validatorObjetId(res, itemType, item);
+
+    let foundItem;
+
+    if (itemType === "post") {
+      foundItem = await Post.findOne({ _id: item });
+    } else if (itemType === "comment") {
+      foundItem = await Comment.findOne({ _id: item });
+    }
+
+    if (!foundItem) {
+      return errorResponse(res, 404, `${itemType} not found :(`);
+    }
 
     const existsDisLike = await Like.findOne({ item, user: userId });
 
@@ -60,9 +105,26 @@ exports.dislike = async (req, res, next) => {
       status: "dislike",
     });
 
+    const existsNotif = await Notif.findOne({
+      type: "dislike",
+      item: foundItem._id,
+      itemType,
+      sender: userId,
+      user: foundItem.author,
+    });
+
+    if (!existsNotif) {
+      await Notif.create({
+        user: foundItem.author,
+        sender: userId,
+        type: "dislike",
+        item: foundItem._id,
+        itemType,
+      });
+    }
+
     return successResponse(res, 200, "Dislike successfully :)");
   } catch (error) {
     next(error);
   }
 };
-

@@ -2,6 +2,7 @@ const { successResponse, errorResponse } = require("../utils/responses");
 const Comment = require("./../models/comment.model");
 const Post = require("./../models/post.model");
 const Like = require("./../models/like.model");
+const Notif = require("./../models/notif.model");
 const validatorObjetId = require("./../validators/validatorObjetId");
 
 exports.create = async (req, res, next) => {
@@ -9,8 +10,8 @@ exports.create = async (req, res, next) => {
     let { content, post, parent = null } = req.body;
 
     validatorObjetId(res, "Post", post);
-    if (parent !== null) {
-      validatorObjetId(res, "Comment parent", parent);
+    if (parent) {
+      validatorObjetId(res, "Comment", parent);
     }
 
     const postExists = await Post.findById(post);
@@ -18,10 +19,33 @@ exports.create = async (req, res, next) => {
       return errorResponse(res, 404, "Post not found");
     }
 
+    let parentComment = null;
     if (parent) {
-      const parentExists = await Comment.findById(parent);
-      if (!parentExists) {
+      parentComment = await Comment.findById(parent);
+      if (!parentComment) {
         return errorResponse(res, 404, "Parent comment not found");
+      }
+
+      if (
+        parentComment.author.toString() !== req.user.id &&
+        parentComment.author.toString() !== postExists.author.toString()
+      ) {
+        const notifReplyExists = await Notif.findOne({
+          user: parentComment.author,
+          sender: req.user.id,
+          item: parentComment._id,
+          type: "reply",
+        });
+
+        if (!notifReplyExists) {
+          await Notif.create({
+            user: parentComment.author,
+            sender: req.user.id,
+            type: "reply",
+            item: parentComment._id,
+            itemType: "comment",
+          });
+        }
       }
     }
 
@@ -31,6 +55,25 @@ exports.create = async (req, res, next) => {
       post,
       author: req.user.id,
     });
+
+    if (req.user.id !== postExists.author.toString()) {
+      const notifExists = await Notif.findOne({
+        user: postExists.author,
+        sender: req.user.id,
+        item: postExists._id,
+        type: "comment",
+      });
+
+      if (!notifExists) {
+        await Notif.create({
+          user: postExists.author,
+          sender: req.user.id,
+          type: "comment",
+          item: postExists._id,
+          itemType: "post",
+        });
+      }
+    }
 
     return successResponse(res, 200, "Comment sent successfully :)", comment);
   } catch (error) {

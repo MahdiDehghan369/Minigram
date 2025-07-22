@@ -44,7 +44,7 @@ const passwordSchema = yup.object({
 
 const postSchema = yup.object({
   caption: yup.string().required("caption is required"),
-  ispinned : yup.string()
+  ispinned: yup.string(),
 });
 
 const usernameSchema = yup.object({
@@ -57,7 +57,6 @@ const usernameSchema = yup.object({
     ),
 });
 
-
 const nameSchema = yup.object({
   name: yup.string().required("Name is required"),
 });
@@ -67,9 +66,7 @@ const bioSchema = yup.object({
 });
 
 const likeSchema = yup.object({
-  item: yup
-    .string()
-    .required("item is required ❌"),
+  item: yup.string().required("item is required ❌"),
 
   itemType: yup
     .string()
@@ -77,9 +74,22 @@ const likeSchema = yup.object({
     .oneOf(["post", "comment"], "itemType is not valid ❌"),
 });
 
-
 const bookmarkSchema = yup.object({
   item: yup.string().required("item is required ❌"),
+});
+
+const commentSchema = yup.object({
+  content: yup.string().required("Content is required ❌"),
+});
+
+const getNotifSchema = yup.object({
+  type: yup
+    .string()
+    .oneOf(
+      ["like", "dislike", "comment", "reply", "follow", "mention"],
+      "Type is not valid ❌"
+    ),
+    isRead: yup.boolean()
 });
 
 module.exports = {
@@ -93,4 +103,6 @@ module.exports = {
   bioSchema,
   likeSchema,
   bookmarkSchema,
+  commentSchema,
+  getNotifSchema,
 };

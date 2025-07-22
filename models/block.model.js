@@ -1,22 +1,21 @@
 const mongoose = require("mongoose");
 
-const followSchema = new mongoose.Schema(
+const blockSchema = new mongoose.Schema(
   {
-    follower: {
+    blocker: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,
     },
-    following: {
+    blocked: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
       required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
+blockSchema.index({ blocker: 1, blocked: 1 }, { unique: true });
 
-module.exports = mongoose.model("follow", followSchema);
+module.exports = mongoose.model("block", blockSchema);

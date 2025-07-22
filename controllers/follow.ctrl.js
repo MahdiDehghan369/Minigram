@@ -1,5 +1,6 @@
 const Follow = require("./../models/follow.model");
 const User = require("./../models/user.model");
+const Notif = require("./../models/notif.model");
 
 const validatorObjectId = require("./../validators/validatorObjetId");
 const { errorResponse, successResponse } = require("./../utils/responses");
@@ -33,6 +34,12 @@ exports.follow = async (req, res, next) => {
       follower: req.user?.id,
       following: userId,
     });
+
+    await Notif.create({
+      user: user._id,
+      sender: req.user.id,
+      type: "follow"
+    })
 
     return successResponse(res, 200, "Follow successfully :)");
   } catch (error) {
