@@ -1,13 +1,19 @@
 const express = require('express');
 const router = express.Router()
-
+const checkBlockStatus = require("./../middlewares/checkBlockStatus");
 const authMiddleware = require('./../middlewares/auth');
 const commentCtrl = require('./../controllers/comment.ctrl.js');
 
 const validateBody = require("./../middlewares/validateBody");
 const { commentSchema } = require("./../validators/validator");
 
-router.route("/").post(authMiddleware, validateBody(commentSchema) ,commentCtrl.create);
+router
+  .route("/")
+  .post(
+    authMiddleware,
+    validateBody(commentSchema),
+    checkBlockStatus,commentCtrl.create
+  );
 router.route("/:commentId").delete(authMiddleware, commentCtrl.remove).put(authMiddleware , validateBody(commentSchema), commentCtrl.edit);
 router.route("/:commentId/likes").get(authMiddleware, commentCtrl.getCommentLikes);
 router

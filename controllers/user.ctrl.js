@@ -9,9 +9,11 @@ const path = require("path");
 
 exports.getUserInfo = async (req, res, next) => {
   try {
-    const { username } = req.params;
+    let { username } = req.params;
 
     const userId = req?.user?.id;
+
+    username = username.trim().toLowerCase()
 
     const user = await User.findOne({ username }).select(
       "username email name bio avatar isPrivate"

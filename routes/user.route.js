@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router()
 
 const authMiddleware = require('./../middlewares/auth');
+const checkBlockStatus = require("./../middlewares/checkBlockStatus");
 const validateBody = require('./../middlewares/validateBody');
 const userCtrl = require('./../controllers/user.ctrl');
 const {usernameSchema , emailSchema , nameSchema , bioSchema} = require('./../validators/validator');
@@ -11,7 +12,9 @@ const uploader = require('./../configs/multer');
 router.route("/private").patch(authMiddleware , userCtrl.makeProfilePrivate)
 router.route("/public").patch(authMiddleware , userCtrl.makeProfilePublic)
 
-router.route("/:username").get(authMiddleware,  userCtrl.getUserInfo)
+router
+  .route("/:username")
+  .get(authMiddleware, checkBlockStatus, userCtrl.getUserInfo);
 
 router
   .route("/setting/username")

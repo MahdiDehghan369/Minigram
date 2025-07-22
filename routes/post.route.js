@@ -3,6 +3,7 @@ const router = express.Router();
 
 const postCtrl = require("./../controllers/post.ctrl");
 const authMiddleware = require("./../middlewares/auth");
+const checkBlockStatus = require("./../middlewares/checkBlockStatus");
 
 const upload = require('./../configs/multer');
 
@@ -25,7 +26,7 @@ router.route("/clear-trash").delete(authMiddleware, postCtrl.clearTrash);
 
 router
   .route("/:postId")
-  .get(authMiddleware, postCtrl.getAPost)
+  .get(authMiddleware,checkBlockStatus, postCtrl.getAPost)
   .delete(authMiddleware, postCtrl.removePost)
   .put(authMiddleware, postCtrl.updatePost);
 
